@@ -1,0 +1,191 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,
+  literate={ε}{{$\varepsilon$}}1 {≤}{{$\le$}}1 {ℕ}{{$\mathbb N$}}1 {ℝ}{{$\mathbb R$}}1}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\DeclareMathOperator{\lcm}{lcm}
+
+\title{The sharp constant in Erd\H{o}s Problem 457}
+\author{Ji Ho Bae}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let \(q(n,k)\) be the least prime not dividing \((n+1)(n+2)\cdots(n+k)\).  We prove that
+\(q(n,\log n)\ge(1-\varepsilon)\log n\,\log\log n/\log\log\log n\) for infinitely many \(n\),
+improving the constant \(\tfrac12\) of Tao to the value \(1\) predicted by the probabilistic
+model.  The proof is elementary and is formally verified in Lean~4.
+\end{abstract}
+
+\section{The result}
+
+Erd\H{o}s and Pomerance \cite{Erdos1979} asked how large
+\(q(n,\log n)\) (meaning \(q(n,\lfloor\log n\rfloor)\)) can be; see Problem~457 of
+\cite{Bloom457}.  In the discussion of that problem, constructions found by GPT-5.2~Pro
+(prompted by Barreto) showed \(q(n,\log n)\ge C\log n\) infinitely often for every \(C\), and
+Tao showed
+\[
+q(n,\log n)>\bigl(\tfrac12-o(1)\bigr)\,g(n),\qquad
+g(n):=\frac{\log n\,\log\log n}{\log\log\log n},
+\]
+for infinitely many \(n\), remarking that \(\tfrac12\) is the natural limit of his argument and
+that \(g(n)\) is the expected order.
+
+\begin{theorem}\label{thm}
+For every \(\varepsilon>0\) there are infinitely many \(n\) with
+\(q(n,\log n)\ge(1-\varepsilon)\,g(n)\).  Equivalently,
+\(\limsup_{n\to\infty}q(n,\log n)/g(n)\ge1\).
+\end{theorem}
+
+The constant is best possible in the probabilistic model: for \(k=\lfloor\log X\rfloor\) and
+\(Q=\lambda g(X)\), the expected number of \(n\in(X,2X]\) with \(q(n,k)>Q\) is
+\(X\prod_{k<p\le Q}k/p=X^{1-\lambda+o(1)}\).  An upper bound of the form
+\(q(n,\log n)<(1-c)(\log n)^2\) is Problem~1181 of \cite{Bloom457} and is open.
+
+\section{Three lemmas}
+
+Write \(\theta(x)=\sum_{p\le x}\log p\) and \(\psi(x)=\log\lcm(1,\dots,\lfloor x\rfloor)\).
+Besides Chebyshev's bounds \(\theta(x)\le x\log4\) and \(\psi(x)\le C_1x\) with
+\(C_1=\log4+4\), we use only the following.
+
+\begin{lemma}[Chebyshev]\label{lem:cheb}
+For every \(\delta>0\), \(\theta(x)\le(1+\delta)x\) for arbitrarily large \(x\).
+\end{lemma}
+
+\begin{proof}
+Legendre's formula gives \(\sum_{p\le N}\lfloor N/p\rfloor\log p\le\log N!\le N\log N\), hence
+\(S(N):=\sum_{p\le N}\frac{\log p}{p}\le\log N+\frac{\theta(N)}N\le\log N+\log4\).
+Partial summation gives \(S(N)\ge\sum_{n<N}\theta(n)/(n(n+1))\).  If \(\theta(n)>(1+\delta)n\)
+for all \(n\ge n_0\), the right side is \(\ge(1+\delta)\log N-O(1)\), a contradiction for large
+\(N\).
+\end{proof}
+
+\begin{lemma}[Anchored pigeonhole]\label{lem:anchor}
+Let \(\Phi:\{0,\dots,J\}\to\Omega\) with \(\Omega\) finite, and let \(F\) be a finite set of
+positive integers with \(|\Omega|(|F|+1)<J+1\).  Then \(\Phi(i)=\Phi(j)\) for some
+\(0\le i<j\le J\) with \(j-i\notin F\).
+\end{lemma}
+
+\begin{proof}
+A fibre \(B\) of \(\Phi\) has more than \(|F|+1\) elements; with \(i=\min B\), the \(|B|-1>|F|\)
+differences \(j-i\) \((j\in B\setminus\{i\})\) cannot all lie in \(F\).
+\end{proof}
+
+\begin{lemma}[Fold]\label{lem:fold}
+Let \(2h<p\) and \(tL\equiv e\pmod p\) with \(|e|<h\).  Then \(p\) divides one of
+\(n+2,\dots,n+2h\), where \(n=tL-h-1\).
+\end{lemma}
+
+\begin{proof}
+\(n+(1+h-e)=tL-e\equiv0\pmod p\), and \(2\le1+h-e\le2h\).
+\end{proof}
+
+\section{Proof of Theorem~\ref{thm}}
+
+Fix \(\varepsilon\in(0,\frac12]\) and put \(c=(3+C_1)/\varepsilon\).  For an integer \(M\) let
+\[
+A=\frac{c\log M}{\log\log M},\quad K=\lfloor AM\rfloor,\quad
+h=\Bigl\lfloor\frac{M}{20\log A}\Bigr\rfloor,\quad L=\lcm(1,\dots,M),\quad
+\mathcal P=\{p:M<p\le K\}.
+\]
+
+\emph{The code.}  Let \(\kappa(j)=(\lfloor[jL]_p/h\rfloor)_{p\in\mathcal P}\), where \([x]_p\)
+is the least nonnegative residue.  It takes at most
+\(C_M=\prod_{p\in\mathcal P}(\lfloor p/h\rfloor+1)\) values.  Since \(\log(p/h)/\log p\) increases
+in \(p\),
+\[
+\log C_M\le\sum_{p\in\mathcal P}\Bigl(\log\frac ph+\frac hp\Bigr)
+\le\theta(K)\,\frac{\log(K/h)}{\log K}+\pi(K)\frac hM .
+\]
+As \(M\to\infty\) we have \(K/h\asymp A\log A\), \(\log K\sim\log M\),
+\(A\log A/\log M\to c\) and \(\pi(K)h/M=o(M)\).  Hence, \emph{whenever}
+\(\theta(K)\le(1+\frac1{8c})K\) and \(M\) is large, \(\log C_M\le(c+\frac12)M\).
+
+\emph{Good scales.}  There are infinitely many such \(M\).  Indeed
+\(K(M+1)\le(1+7/M)K(M)\) for large \(M\); given a large \(x\) with
+\(\theta(x)\le(1+\frac1{16c})x\) (Lemma~\ref{lem:cheb}), take \(M\) maximal with \(K(M)\le x\);
+then \(\theta(K(M))\le\theta(x)\le(1+\frac1{16c})K(M+1)\le(1+\frac1{8c})K(M)\).
+
+\emph{The construction.}  Let \(M\) be a large good scale, \(J=\lfloor e^{(c+2)M}\rfloor\) and
+\(F=\{1,\dots,\lfloor e^M\rfloor\}\).  Then \(C_M(|F|+1)\le2e^{(c+3/2)M}<J+1\), and
+Lemma~\ref{lem:anchor} gives \(t=j-i\) with \(e^M<t\le e^{(c+2)M}\) and \(\kappa(i)=\kappa(j)\);
+thus \(tL\equiv e_p\pmod p\) with \(|e_p|<h\) for every \(p\in\mathcal P\).  Put \(n=tL-h-1\).
+Every prime \(p\le M\) divides \(L\mid n+h+1\), and every \(p\in\mathcal P\) divides one of
+\(n+2,\dots,n+2h\) by Lemma~\ref{lem:fold} (note \(2h<M<p\)).  Moreover
+\[
+M<\log t\le\log n\le\log t+\psi(M)\le(c+2+C_1)M=:sM .
+\]
+Since \(2h<M\le\log n\), every prime \(p\le K\) divides \(\prod_{i\le\log n}(n+i)\), so
+\(q(n,\log n)>K\ge AM-1\).
+
+\emph{Conclusion.}  With \(X=\log n\in[M,sM]\),
+\[
+(1-\varepsilon)\,g(n)\le(1-\varepsilon)\,\frac{sM(\log M+\log s)}{\log\log M}
+\le\frac{cM\log M}{\log\log M}-1=AM-1<q(n,\log n)
+\]
+for large \(M\), because \(c-(1-\varepsilon)s=1+\varepsilon(2+C_1)\ge1\).  As
+\(\log n\ge M\to\infty\), this gives infinitely many \(n\). \(\qed\)
+
+\begin{remark}
+Two points remove Tao's factor \(\tfrac12\).  The covering block has length
+\(2h\asymp\log n/\log\log\log n=o(\log n)\), yet the cost \(\log(p/h)\) of a prime differs from
+\(\log(p/\log n)\) only by \(O(\log\log\log\log n)=o(\log\log\log n)\); and the anchored choice
+\(t>e^M\) makes \(n\) large at a price \(e^{M}\) that is negligible as \(c\to\infty\).  The same
+code was used in \cite{Bae684} for Problem~684.  No prime number theorem is needed: the entropy
+bound is only required at the scales actually used, which Lemma~\ref{lem:cheb} supplies.
+\end{remark}
+
+\section{Formal verification}
+
+Theorem~\ref{thm}, its \(\limsup\) form, and the Formal Conjectures variant
+\texttt{erdos\_457.variants.qnk} are verified in Lean~4 (v4.35.0-rc3) with Mathlib
+\cite{Mathlib} (commit \texttt{b84a70d}) at
+\url{https://github.com/jbaelaw/erdos457-lean}.  The definition of \(q\) is copied verbatim from
+\cite{FC}; the main statement is
+\begin{lstlisting}
+theorem erdos_457_sharp (ε : ℝ) (hε : 0 < ε) :
+    {n : ℕ | (1 - ε) * Real.log n * Real.log (Real.log n) /
+        Real.log (Real.log (Real.log n)) ≤ q n (Real.log n)}.Infinite
+\end{lstlisting}
+and it depends only on the axioms \texttt{propext}, \texttt{Classical.choice} and
+\texttt{Quot.sound}.
+
+\section*{Acknowledgements}
+I thank the participants of the discussion of Problem~457 on erdosproblems.com, in particular
+Terence Tao, whose comment anticipated the constant~\(1\).
+
+\begin{thebibliography}{9}
+\small
+\bibitem{Bae684}
+J.~H.~Bae, \emph{Unbounded logarithmic limsup in Erd\H{o}s Problem 684 via shifted carry
+scheduling}, arXiv:2604.23784 (2026).
+
+\bibitem{Bloom457}
+T.~F.~Bloom, \emph{Erd\H{o}s problems}, \url{https://www.erdosproblems.com}, Problems 457 and
+1181 and their discussion threads.
+
+\bibitem{Erdos1979}
+P.~Erd\H{o}s, \emph{Some unconventional problems in number theory}, Acta Math. Acad. Sci.
+Hungar. \textbf{33} (1979), 71--80.
+
+\bibitem{FC}
+Google DeepMind, \emph{Formal Conjectures},
+\url{https://github.com/google-deepmind/formal-conjectures},
+\texttt{FormalConjectures/ErdosProblems/457.lean}.
+
+\bibitem{Mathlib}
+The mathlib Community, \emph{The Lean mathematical library}, CPP 2020, 367--381.
+\end{thebibliography}
+
+\end{document}

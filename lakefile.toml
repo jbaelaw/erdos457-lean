@@ -1,0 +1,27 @@
+name = "erdos457"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["Erdos684Lean", "Erdos457", "Challenge", "Solution"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "b84a70d6a5ed793cc46184160f4d4188d8c825fb"
+
+[[lean_lib]]
+name = "Erdos684Lean"
+globs = ["Erdos684Lean.+"]
+
+[[lean_lib]]
+name = "Erdos457"
+
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"

@@ -1,0 +1,148 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml (v0.4) — metadata for the Lean 4 formalization of the sharp constant in Erdős Problem #457.
+
+version: "v0.4"
+
+project:
+  name: "Erdős Problem #457 in Lean 4: limsup q(n, log n) · log log log n / (log n · log log n) ≥ 1"
+  authors:
+    - "Ji Ho Bae"
+  responsible_maintainers:
+    - "Ji Ho Bae"
+  license: "Apache-2.0"
+  description: >-
+    Let q(n, k) be the least prime that does not divide (n+1)(n+2)⋯(n+k) (erdosproblems.com/457).
+    Tao showed in the problem's discussion that q(n, log n) > (1/2 − o(1)) log n · log log n /
+    log log log n for infinitely many n, and noted that the factor 1/2 is the natural limit of his
+    argument; the probabilistic heuristic predicts the constant 1.  This project proves and
+    formalizes the constant 1: for every ε > 0, q(n, log n) ≥ (1 − ε) log n · log log n /
+    log log log n for infinitely many n (erdos_457_sharp), equivalently
+    limsup q(n, log n) · log log log n / (log n · log log n) ≥ 1 (limsup_ge_one).  The
+    construction is n = tL − h − 1 with L = lcm(1, …, M), where the multiplier t is an anchored
+    difference of two indices with equal product-cell codes ⌊[jL]_p / h⌋ (M < p ≤ K), and the
+    covering block has length 2h = o(log n).  No prime number theorem is used: the code-entropy
+    bound needs θ(K) ≤ (1 + δ) K only at the scales actually used, and Chebyshev's elementary
+    liminf θ(x)/x ≤ 1 (proved here from Legendre's formula and θ(x) ≤ x log 4) supplies
+    infinitely many of them.  The targets are proved from propext, Classical.choice and
+    Quot.sound only.
+
+sources:
+  - title: "Erdős problem #457 (erdosproblems.com) and its discussion thread"
+    authors: ["Thomas F. Bloom (ed.)"]
+    id: "https://www.erdosproblems.com/457"
+    type: "web discussion"
+    relationship: background
+    author_endorsement: "not-contacted"
+    note: "statement of the problem; Tao's comment proves the constant 1/2 and predicts 1"
+  - title: "Some unconventional problems in number theory"
+    authors: ["Paul Erdős"]
+    id: "Acta Math. Acad. Sci. Hungar. 33 (1979), 71–80, p. 78"
+    type: paper
+    relationship: background
+    author_endorsement: "n/a"
+    note: "origin of the question (with Pomerance); no result of this source is formalized"
+  - title: "The sharp constant in Erdős Problem 457"
+    authors: ["Ji Ho Bae"]
+    id: "paper/erdos457.pdf in this repository"
+    type: paper
+    relationship: formalizes
+    author_endorsement: "participated"
+    note: "the proof formalized; the Lean development follows it lemma by lemma"
+
+related_formalizations:
+  - id: "https://github.com/google-deepmind/formal-conjectures"
+    relationship: builds-on
+    note: >-
+      the definition of q is copied verbatim from FormalConjectures/ErdosProblems/457.lean
+      (Erdos457.q); erdos_457_qnk is that file's variant erdos_457.variants.qnk; no code is imported
+  - id: "https://github.com/Woett/Lean-files/blob/main/ErdosProblem457.lean"
+    relationship: independent
+    note: "formalization (van Doorn, Barreto) of the answer to the original question; erdos_457_qnk also follows from it"
+  - id: "https://github.com/leanprover-community/mathlib4"
+    relationship: builds-on
+    note: "Chebyshev functions, lcm(1..n), Legendre's formula (pinned commit b84a70d6a5ed793cc46184160f4d4188d8c825fb)"
+
+classification:
+  arxiv: ["math.NT"]
+  msc2020: ["11N25", "11A41"]
+
+status:
+  scope: >-
+    The lower bound with the sharp constant: for every ε > 0, q(n, log n) ≥ (1 − ε) log n ·
+    log log n / log log log n for infinitely many n, and the limsup form.  The matching upper
+    bound (Problem 1181 and the heuristic) is not addressed.  Complete: no sorry in the import
+    closure of Solution.lean.
+  sorry_count: 0  # the sorries of Challenge.lean are the comparator's trusted statements
+  sorry_in_definitions: 0
+  axioms: [propext, Classical.choice, Quot.sound]
+  main_results:
+    - declaration: "Erdos457.Palomar.erdos_457_sharp"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: [propext, Classical.choice, Quot.sound]
+      comparator_config: "comparator.json"
+    - declaration: "Erdos457.Palomar.limsup_ge_one"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: [propext, Classical.choice, Quot.sound]
+      comparator_config: "comparator.json"
+    - declaration: "Erdos457.Palomar.erdos_457_qnk"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: [propext, Classical.choice, Quot.sound]
+      comparator_config: "comparator.json"
+
+automation:
+  methods:
+    - method: manual
+      tool_setup: >-
+        Ji Ho Bae: mathematical argument, formalization strategy, supervision and review of all
+        results, and final responsibility for the project.
+  notes: >-
+    All proofs are checked by Lean's kernel; the targets depend only on the standard axioms.
+
+fidelity:
+  divergences: >-
+    (1) q(n, log n) means q(n, ⌊log n⌋), as in Formal Conjectures (the definition takes a real k
+    and uses ⌊k⌋₊).  (2) log is the natural logarithm Real.log; for small n the expressions
+    log log n and log log log n take Lean's junk values, which only affects finitely many n.
+    (3) The limsup is taken in ℝ≥0∞ (ENNReal), where it always exists.  (4) Nat.exists_prime_not_dvd,
+    used by the Formal Conjectures definition of q, is not in the pinned Mathlib and is stated and
+    proved in Challenge.lean under the same name.
+
+review:
+  status: self-reviewed
+  reviewers:
+    - "Ji Ho Bae"
+  notes: >-
+    No independent external peer review.  Toolchain Lean v4.35.0-rc3, Mathlib
+    b84a70d6a5ed793cc46184160f4d4188d8c825fb; #print axioms lists propext, Classical.choice and
+    Quot.sound for each target.
+
+alignment:
+  namespace: "Erdos457, Erdos684"
+  statements:
+    - source: "paper, Theorem 1 (sharp constant)"
+      lean: "Erdos457.Palomar.erdos_457_sharp ← Erdos457.erdos_457_sharp"
+      module: "Solution.lean (Erdos457/Main.lean)"
+      status: proved
+    - source: "paper, Theorem 1 (limsup form)"
+      lean: "Erdos457.Palomar.limsup_ge_one ← Erdos457.limsup_ge_one"
+      module: "Solution.lean (Erdos457/Corollaries.lean)"
+      status: proved
+    - source: "Formal Conjectures erdos_457.variants.qnk"
+      lean: "Erdos457.Palomar.erdos_457_qnk ← Erdos457.erdos_457_qnk"
+      module: "Solution.lean (Erdos457/Corollaries.lean)"
+      status: proved
+    - source: "paper, Lemma 1 (Chebyshev: θ(n) ≤ (1+δ)n infinitely often)"
+      lean: "Erdos457.frequently_theta_le, Erdos457.frequently_theta_Kof_le"
+      module: "Erdos457/Chebyshev.lean, Erdos457/ThetaK.lean"
+      status: proved
+    - source: "paper, Lemma 2 (code entropy)"
+      lean: "Erdos684.log_CM_le"
+      module: "Erdos684Lean/Entropy.lean"
+      status: proved
+    - source: "paper, Lemma 3 (anchored pigeonhole) and the fold"
+      lean: "Erdos684.anchor, Erdos684.equal_cell, Erdos457.dvd_block_of_near"
+      module: "Erdos684Lean/Anchor.lean, Erdos684Lean/Code.lean, Erdos457/Basic.lean"
+      status: proved

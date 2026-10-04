@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: lake build + axiom audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (Mathlib from cache)
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          use-mathlib-cache: true
+          build: true
+          test: false
+          lint: false
+
+      - name: Axiom audit of the comparator targets
+        run: |
+          lake env lean Solution.lean 2>&1 | tee axioms.txt
+          python3 - <<'PY'
+          import json, re, sys
+          txt = open("axioms.txt").read()
+          names = json.load(open("comparator.json"))["theorem_names"]
+          bad = []
+          for name in names:
+              m = re.search(r"'%s' depends on axioms: \[([^\]]*)\]" % re.escape(name), txt)
+              if not m:
+                  bad.append((name, "not found"))
+              elif set(a.strip() for a in m.group(1).split(",")) - {"propext", "Classical.choice", "Quot.sound"}:
+                  bad.append((name, m.group(1)))
+          for b in bad:
+              print("NOT CLOSED:", *b)
+          sys.exit(1 if bad else 0)
+          PY
