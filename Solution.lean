@@ -26,9 +26,9 @@ open scoped ENNReal
 
 /-- Every nonzero natural number has a prime non-divisor (present in later Mathlib; stated and
 proved here so that the Formal Conjectures definition of `q` compiles verbatim). -/
-theorem Nat.exists_prime_not_dvd {n : ℕ} (hn : n ≠ 0) : ∃ p, p.Prime ∧ ¬p ∣ n := by
-  obtain ⟨p, hnp, hp⟩ := Nat.exists_infinite_primes (n + 1)
-  exact ⟨p, hp, fun hdvd => by have := Nat.le_of_dvd (Nat.pos_of_ne_zero hn) hdvd; omega⟩
+theorem Nat.exists_prime_not_dvd {n : ℕ} (hn : n ≠ 0) : ∃ p, p.Prime ∧ ¬p ∣ n :=
+  (Nat.exists_infinite_primes (n + 1)).elim fun p h =>
+    ⟨p, h.2, fun hdvd => Nat.not_succ_le_self n (h.1.trans (Nat.le_of_dvd (Nat.pos_of_ne_zero hn) hdvd))⟩
 
 namespace Erdos457.Palomar
 
